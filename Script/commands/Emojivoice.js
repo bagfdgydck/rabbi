@@ -92,7 +92,7 @@ const emojiAudioMap = {
  "🤩": "https://files.catbox.moe/bf6z44.mp3",
  "🫡": "https://files.catbox.moe/6jo967.mp3",
  "👹": "https://files.catbox.moe/scsxhj.mp3",
- "🫂: "https://files.catbox.moe/4315xb.mp3",
+ "🫂": "https://files.catbox.moe/4315xb.mp3",
 };
 
 module.exports.handleEvent = async ({ api, event }) => {
