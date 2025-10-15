@@ -17,6 +17,7 @@ const path = require("path");
 const textAudioMap = {
   "i love you": "https://files.catbox.moe/npy7kl.mp3",
   "mata beta": "https://files.catbox.moe/5rdtc6.mp3",
+  "বালের বট": "https://files.catbox.moe/ffxopv.mp3",
 };
 
 module.exports.handleEvent = async ({ api, event }) => {
