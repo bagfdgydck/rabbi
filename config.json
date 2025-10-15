@@ -11,17 +11,24 @@
         "sim.js"
     ],
     "eventDisabled": [
-        "join.js"
+        ""
     ],
     "EMAIL": "",
     "PASSWORD": "",
     "OTPKEY": "",
+    "reactUnsend": [
+        "😡",
+        "🤧",
+        "🤯"
+    ],
     "BOTNAME": "─꯭─⃝‌‌☞︎︎︎𝐑𝐀𝐁𝐁𝐢⍟𝐕𝐀𝐈☜︎︎.𝐂𝐡𝐚𝐭 𝐁𝐨𝐭",
     "PREFIX": ".",
     "ADMINBOT": [
-        "61566961113103",
+        "61564002689411",
         "61560826956875",
-        "61564002689411"
+        "",
+        "61564002689411",
+        "61566961113103"
     ],
     "NDH": [
         "61564002689411"
@@ -52,7 +59,7 @@
     },
     "daily": {
         "cooldownTime": 43200000,
-        "rewardCoin": 1000
+        "rewardCoin": 1000000000
     },
     "diemdanh": {
         "cooldownTime": 3000000
@@ -232,11 +239,23 @@
         "autoUnsend": true,
         "delayUnsend": 300
     },
+    "spam": {
+        "autoUnsend": "",
+        "delayUnsend": 2000
+    },
+    "adminNoti": {
+        "autoUnsend": true,
+        "sendNoti": true,
+        "timeToUnsend": 10
+    },
     "helpall": {
         "autoUnsend": true,
         "delayUnsend": 20
     },
+    "videov2": {
+        "YOUTUBE_API": "AIzaSyDBOpnGGz225cPwHlJQs8OMRtxOjSUm73I"
+    },
     "vip": {
         "cooldownTime": 1200000
     }
-}
+    }
