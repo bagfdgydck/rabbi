@@ -9,7 +9,7 @@
 Assalamualaikum Everyone!  
 **Welcome to My RABBi CHAT BOT Fork!**
 
-![Box-shaped Image](https://i.imgur.com/ZRQpRGL.jpeg)
+![Box-shaped Image](https://i.imgur.com/tsnCmMY.jpeg)
 
 <p align="center" style="animation: glow 2s infinite alternate; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
   <span style="font-size: 24px; font-weight: bold;">RABBI CHAT BOT</span><br>
