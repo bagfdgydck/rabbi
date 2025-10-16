@@ -4,9 +4,9 @@ const path = require("path");
 module.exports.config = {
   name: "leave",
   eventType: ["log:unsubscribe"],
-  version: "3.3.0",
+  version: "3.4.0",
   credits: "𝐑𝐀𝐁𝐁𝐢⍟𝐕𝐀𝐈 | Modified by Akash",
-  description: "Leave message system with fixed gif/image for leave & kick",
+  description: "Leave message system with gif/video/image for leave & kick"
 };
 
 module.exports.onLoad = function () {
@@ -45,14 +45,24 @@ module.exports.run = async function ({ api, event, Users, Threads }) {
 
     msg = msg.replace(/\{name}/g, userName).replace(/\{type}/g, typeText);
 
-    // ফাইল পাথ সিলেক্ট করো
-    const gifPath = isLeave
-      ? path.join(__dirname, "cache", "leaveGif", "leave.gif")
-      : path.join(__dirname, "cache", "kickGif", "kick.gif");
+    // ফাইল পাথ চেক (ভিডিও/জিআইএফ/ইমেজ সব সাপোর্ট)
+    const leavePath = path.join(__dirname, "cache", "leaveGif");
+    const kickPath = path.join(__dirname, "cache", "kickGif");
+
+    // লিভ নাকি কিক অনুযায়ী ফাইল বেছে নাও
+    const folderPath = isLeave ? leavePath : kickPath;
+    const fileList = fs.readdirSync(folderPath).filter(file =>
+      [".mp4", ".gif", ".jpg", ".png", ".jpeg", ".mp3"].some(ext => file.endsWith(ext))
+    );
+
+    // যদি ফাইল থাকে তাহলে প্রথমটা (বা random চাইলে random বেছে নিতে পারো)
+    const selectedFile = fileList.length > 0
+      ? path.join(folderPath, fileList[0]) // প্রথম ফাইলটা
+      : null;
 
     let attachment = null;
-    if (fs.existsSync(gifPath)) {
-      attachment = fs.createReadStream(gifPath);
+    if (selectedFile && fs.existsSync(selectedFile)) {
+      attachment = fs.createReadStream(selectedFile);
     }
 
     return api.sendMessage(
@@ -60,7 +70,7 @@ module.exports.run = async function ({ api, event, Users, Threads }) {
       threadID
     );
 
-  } catch (e) {
-    console.error("[ Leave Event Error ]", e);
+  } catch (err) {
+    console.error("❌ Leave Event Error:", err);
   }
 };
