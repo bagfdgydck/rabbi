@@ -1,67 +1,66 @@
+const fs = require("fs-extra");
+const path = require("path");
+
 module.exports.config = {
   name: "leave",
   eventType: ["log:unsubscribe"],
-  version: "3.2.0",
+  version: "3.3.0",
   credits: "𝐑𝐀𝐁𝐁𝐢⍟𝐕𝐀𝐈 | Modified by Akash",
   description: "Leave message system with fixed gif/image for leave & kick",
-  dependencies: {
-    "fs-extra": "",
-    "path": ""
-  }
 };
 
 module.exports.onLoad = function () {
-  const { existsSync, mkdirSync } = global.nodemodule["fs-extra"];
-  const { join } = global.nodemodule["path"];
   const folders = [
-    join(__dirname, "cache", "leaveGif"),
-    join(__dirname, "cache", "kickGif")
+    path.join(__dirname, "cache", "leaveGif"),
+    path.join(__dirname, "cache", "kickGif")
   ];
   for (const folder of folders) {
-    if (!existsSync(folder)) mkdirSync(folder, { recursive: true });
+    if (!fs.existsSync(folder)) fs.mkdirSync(folder, { recursive: true });
   }
 };
 
-module.exports.run = async function({ api, event, Users, Threads }) {
-  const fs = require("fs");
-  const path = require("path");
-  const { threadID } = event;
+module.exports.run = async function ({ api, event, Users, Threads }) {
+  try {
+    const { threadID } = event;
+    const leftID = event.logMessageData?.leftParticipantFbId;
 
-  // যদি বট নিজে লিভ নেয়
-  if (event.logMessageData.leftParticipantFbId == api.getCurrentUserID()) return;
+    if (!leftID) return;
+    if (leftID == api.getCurrentUserID()) return; // বট নিজে গেলে কিছু না পাঠাবে
 
-  const data = global.data.threadData.get(parseInt(threadID)) || (await Threads.getData(threadID)).data;
-  const name = global.data.userName.get(event.logMessageData.leftParticipantFbId)
-    || await Users.getNameUser(event.logMessageData.leftParticipantFbId);
+    const threadData = global.data.threadData.get(parseInt(threadID)) || (await Threads.getData(threadID)).data;
+    const userName = global.data.userName.get(leftID) || await Users.getNameUser(leftID);
 
-  const isLeave = (event.author == event.logMessageData.leftParticipantFbId);
+    const isLeave = (event.author == leftID);
+    const typeText = isLeave
+      ? "তুই নিজেই গ্রুপ থেকে লিভ নিলি 😤 আবার আইসিস না! 🚫"
+      : "তোমাকে গ্রুপ থেকে লাথি মেরে বের করে দেওয়া হলো 🤣🚪";
 
-  const typeText = isLeave
-    ? "তুই নিজেই গ্রুপ থেকে লিভ নিলি 😤 আবার আইসিস না! 🚫"
-    : "তোমাকে গ্রুপ থেকে লাথি মেরে বের করে দেওয়া হলো 🤣🚪";
-
-  let msg = (typeof data.customLeave == "undefined")
-    ? `━━━━━━━━━━━━━━━━━━━━━
+    let msg = (typeof threadData.customLeave == "undefined")
+      ? `━━━━━━━━━━━━━━━━━━━━━
 😢 {name} {type}
 ━━━━━━━━━━━━━━━━━━━━━
 ভালো থাকিস... কিন্তু গ্রুপের মজা মিস করবি 😉
 ✦─────꯭─⃝‌‌☞︎︎︎𝐑𝐀𝐁𝐁𝐢⍟𝐕𝐀𝐈☜︎︎𝐂𝐡𝐚𝐭 𝐁𝐨𝐭────✦`
-    : data.customLeave;
+      : threadData.customLeave;
 
-  msg = msg.replace(/\{name}/g, name).replace(/\{type}/g, typeText);
+    msg = msg.replace(/\{name}/g, userName).replace(/\{type}/g, typeText);
 
-  // আলাদা ফোল্ডার অনুযায়ী gif ফাইল সিলেক্ট করো
-  const gifPath = isLeave
-    ? path.join(__dirname, "cache", "leaveGif", "leave.gif")  // নিজে লিভ নিলে
-    : path.join(__dirname, "cache", "kickGif", "kick.gif");  // কিক দিলে
+    // ফাইল পাথ সিলেক্ট করো
+    const gifPath = isLeave
+      ? path.join(__dirname, "cache", "leaveGif", "leave.gif")
+      : path.join(__dirname, "cache", "kickGif", "kick.gif");
 
-  let attachment = null;
-  if (fs.existsSync(gifPath)) {
-    attachment = fs.createReadStream(gifPath);
+    let attachment = null;
+    if (fs.existsSync(gifPath)) {
+      attachment = fs.createReadStream(gifPath);
+    }
+
+    return api.sendMessage(
+      attachment ? { body: msg, attachment } : { body: msg },
+      threadID
+    );
+
+  } catch (e) {
+    console.error("[ Leave Event Error ]", e);
   }
-
-  return api.sendMessage(
-    attachment ? { body: msg, attachment } : { body: msg },
-    threadID
-  );
 };
