@@ -2,7 +2,7 @@ module.exports.config = {
   name: "text_voice",
   version: "1.0",
   hasPermssion: 0,
-  credits: "𝙼𝚘𝚑𝚊𝚖𝚖𝚊𝚍 𝙰𝚔𝚊𝚜𝚑",
+  credits: "☞︎︎︎𝐑𝐀𝐁𝐁𝐢⍟𝐕𝐀𝐈☜︎︎.",
   description: "নির্দিষ্ট টেক্সট দিলে কিউট মেয়ের ভয়েস প্লে করবে 😍 (ইমোজি নয়)",
   commandCategory: "noprefix",
   usages: "𝚃𝚎𝚡𝚃",
@@ -17,7 +17,18 @@ const path = require("path");
 const textAudioMap = {
   "i love you": "https://files.catbox.moe/npy7kl.mp3",
   "mata beta": "https://files.catbox.moe/5rdtc6.mp3",
-  "বালের বট": "https://files.catbox.moe/ffxopv.mp3",
+  "matha gorom": "https://files.catbox.moe/4ccqny.mp3",
+  "Assalamallokom": "https://files.catbox.moe/tnne4e.mp3",
+  "বেবি": "https://files.catbox.moe/tggqtw.mp3",
+  "গালি দিলি কেন": "https://files.catbox.moe/lmpo2z.mp3",
+  "বিডিও দে": "https://files.catbox.moe/kmmuqz.mp3",
+  "তোর সাউন নাই": "https://files.catbox.moe/byh6y8.mp3",
+  "কলে আসে": "https://files.catbox.moe/it0utu.mp3",
+  "কিক মার": "https://files.catbox.moe/r4scvf.mp3",
+  "কে এট দিছে": "https://files.catbox.moe/rct5yh.mp3",
+  "বালো হও": "https://files.catbox.moe/kf6zot.mp3",
+  "বালের টিম": "https://files.catbox.moe/z9th9f.mp3", 
+  "আম্মু আছে":  "https://files.catbox.moe/aviioz.mp3",
 };
 
 module.exports.handleEvent = async ({ api, event }) => {
