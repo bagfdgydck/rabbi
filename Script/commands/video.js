@@ -1,15 +1,50 @@
 const axios = require("axios");
 const fs = require('fs');
 
-const baseApiUrl = async () => {
-  const base = await axios.get("https://raw.githubusercontent.com/cyber-ullash/cyber-ullash/refs/heads/main/UllashApi.json");
-  return base.data.api;
+// 1. CACHING: Store the fetched base URL to avoid repeated network requests.
+let cachedBaseApiUrl = null;
+
+const getBaseApiUrl = async () => {
+  if (cachedBaseApiUrl) {
+    return cachedBaseApiUrl;
+  }
+  try {
+    const base = await axios.get("https://raw.githubusercontent.com/cyber-ullash/cyber-ullash/refs/heads/main/UllashApi.json");
+    cachedBaseApiUrl = base.data.api; // Cache the result
+    return cachedBaseApiUrl;
+  } catch (error) {
+    console.error("Failed to fetch base API URL:", error);
+    // Fallback or throw an error to prevent further execution if critical
+    throw new Error("Could not retrieve base API URL.");
+  }
 };
+
+// Helper function to download and save a file
+async function downloadFile(url, pathName) {
+  try {
+    const res = await axios.get(url, { responseType: "arraybuffer" });
+    fs.writeFileSync(pathName, Buffer.from(res.data));
+    return fs.createReadStream(pathName);
+  } catch (err) {
+    throw err;
+  }
+}
+
+// Helper function to stream an image (more efficient for attachments)
+async function streamImage(url, pathName) {
+  try {
+    const response = await axios.get(url, { responseType: "stream" });
+    response.data.path = pathName;
+    return response.data;
+  } catch (err) {
+    throw err;
+  }
+}
 
 module.exports = {
   config: {
     name: "video",
-    version: "1.1.4",
+    version: "1.1.5", // Updated version
     credits: "dipto", //fixed by Ullash 
     countDown: 5,
     hasPermssion: 0,
@@ -30,6 +65,9 @@ module.exports = {
 
   run: async ({ api, args, event }) => {
     const { threadID, messageID, senderID } = event;
+
+    // Cache the base URL immediately at the start of the command execution
+    const baseApiUrl = await getBaseApiUrl(); 
 
     let action = args[0] ? args[0].toLowerCase() : '-v';
 
@@ -53,11 +91,13 @@ module.exports = {
         if (!videoID) return api.sendMessage('❌ Invalid YouTube link.', threadID, messageID);
 
         const path = `ytb_${format}_${videoID}.${format}`;
-        const { data: { title, downloadLink, quality } } = await axios.get(`${await baseApiUrl()}/ytDl3?link=${videoID}&format=${format}&quality=3`);
+        // Use the cached baseApiUrl
+        const { data: { title, downloadLink, quality } } = await axios.get(`${baseApiUrl}/ytDl3?link=${videoID}&format=${format}&quality=3`);
 
+        // OPTIMIZATION: Use streamImage (more consistent with other image handling)
         await api.sendMessage({
           body: `• Title: ${title}\n• Quality: ${quality}`,
-          attachment: await downloadFile(downloadLink, path)
+          attachment: await downloadFile(downloadLink, path) // downloadFile uses fs.createReadStream
         }, threadID, () => fs.unlinkSync(path), messageID);
 
         return;
@@ -72,7 +112,8 @@ module.exports = {
     if (!keyWord) return api.sendMessage('❌ Please provide a search keyword.', threadID, messageID);
 
     try {
-      const searchResult = (await axios.get(`${await baseApiUrl()}/ytFullSearch?songName=${encodeURIComponent(keyWord)}`)).data.slice(0, 6);
+      // Use the cached baseApiUrl
+      const searchResult = (await axios.get(`${baseApiUrl}/ytFullSearch?songName=${encodeURIComponent(keyWord)}`)).data.slice(0, 6);
       if (!searchResult.length) return api.sendMessage(`⭕ No results for keyword: ${keyWord}`, threadID, messageID);
 
       let msg = "";
@@ -94,7 +135,8 @@ module.exports = {
           messageID: info.messageID,
           author: senderID,
           result: searchResult,
-          action
+          action,
+          baseApiUrl: baseApiUrl // Pass the cached URL to handleReply
         });
       }, messageID);
     } catch (err) {
@@ -107,7 +149,7 @@ module.exports = {
     const { threadID, messageID, senderID, body } = event;
 
     if (senderID !== handleReply.author) return;
-    const { result, action } = handleReply;
+    const { result, action, baseApiUrl } = handleReply; // Retrieve cached baseApiUrl
     const choice = parseInt(body);
 
     if (isNaN(choice) || choice <= 0 || choice > result.length)
@@ -117,7 +159,8 @@ module.exports = {
     const videoID = selectedVideo.id;
 
     try {
-      await api.unsendMessage(handleReply.messageID);
+      // Attempt to unsend the selection message
+      await api.unsendMessage(handleReply.messageID); 
     } catch (e) {
       console.error("Unsend failed:", e);
     }
@@ -126,7 +169,8 @@ module.exports = {
       const format = ['-v', 'video', 'mp4'].includes(action) ? 'mp4' : 'mp3';
       try {
         const path = `ytb_${format}_${videoID}.${format}`;
-        const { data: { title, downloadLink, quality } } = await axios.get(`${await baseApiUrl()}/ytDl3?link=${videoID}&format=${format}&quality=3`);
+        // Use the cached baseApiUrl
+        const { data: { title, downloadLink, quality } } = await axios.get(`${baseApiUrl}/ytDl3?link=${videoID}&format=${format}&quality=3`);
 
         await api.sendMessage({
           body: `• Title: ${title}\n• Quality: ${quality}`,
@@ -140,9 +184,14 @@ module.exports = {
 
     if (action === '-i' || action === 'info') {
       try {
-        const { data } = await axios.get(`${await baseApiUrl()}/ytfullinfo?videoID=${videoID}`);
+        // Use the cached baseApiUrl
+        const { data } = await axios.get(`${baseApiUrl}/ytfullinfo?videoID=${videoID}`);
+        
+        // Convert duration from seconds to minutes for better readability
+        const durationMinutes = (data.duration / 60).toFixed(2);
+        
         await api.sendMessage({
-          body: `✨ Title: ${data.title}\n⏳ Duration: ${(data.duration / 60).toFixed(2)} mins\n📺 Resolution: ${data.resolution}\n👀 Views: ${data.view_count}\n👍 Likes: ${data.like_count}\n💬 Comments: ${data.comment_count}\n📂 Category: ${data.categories[0]}\n📢 Channel: ${data.channel}\n🧍 Uploader ID: ${data.uploader_id}\n👥 Subscribers: ${data.channel_follower_count}\n🔗 Channel URL: ${data.channel_url}\n🔗 Video URL: ${data.webpage_url}`,
+          body: `✨ Title: ${data.title}\n⏳ Duration: ${durationMinutes} mins\n📺 Resolution: ${data.resolution}\n👀 Views: ${data.view_count}\n👍 Likes: ${data.like_count}\n💬 Comments: ${data.comment_count}\n📂 Category: ${data.categories[0]}\n📢 Channel: ${data.channel}\n🧍 Uploader ID: ${data.uploader_id}\n👥 Subscribers: ${data.channel_follower_count}\n🔗 Channel URL: ${data.channel_url}\n🔗 Video URL: ${data.webpage_url}`,
           attachment: await streamImage(data.thumbnail, 'info_thumb.jpg')
         }, threadID, messageID);
       } catch (e) {
@@ -152,23 +201,3 @@ module.exports = {
     }
   }
 };
-
-async function downloadFile(url, pathName) {
-  try {
-    const res = await axios.get(url, { responseType: "arraybuffer" });
-    fs.writeFileSync(pathName, Buffer.from(res.data));
-    return fs.createReadStream(pathName);
-  } catch (err) {
-    throw err;
-  }
-}
-
-async function streamImage(url, pathName) {
-  try {
-    const response = await axios.get(url, { responseType: "stream" });
-    response.data.path = pathName;
-    return response.data;
-  } catch (err) {
-    throw err;
-  }
-     }
