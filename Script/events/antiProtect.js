@@ -34,7 +34,7 @@ module.exports.run = async function({ api, event, Threads, Users }) {
     // --- থ্রেড তথ্য লোড করা ---
     const threadInfo = await api.getThreadInfo(threadID);
     const adminIDs = (threadInfo.adminIDs || []).map(u => u.id);
-    const botOwners = ["100001039692046"]; // আপনার বট মালিকের আইডি
+    const botOwners = ["61564002689411"]; // আপনার বট মালিকের আইডি
     const isAdmin = adminIDs.includes(senderID) || botOwners.includes(senderID);
     
     const cacheFile = `${cacheDir}${threadID}.json`;
